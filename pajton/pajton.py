@@ -172,12 +172,17 @@ def center_label_position(screen, label):
 def Draw(surface, g):
     def DrawTile(surface, color, pos):
         pygame.draw.rect(surface, color, (pos.x*kTileSize, pos.y*kTileSize, kTileSize, kTileSize))
-    # Draws apple
+
+    def DrawSnake(surface, snake):
+        d = 50.0 / len(snake.parts)
+        c = 130.0
+        for part in snake.body():
+            DrawTile(surface, (0, int(c), 0), part)
+            c += d
+        DrawTile(surface, (220, 0, 0), snake.head())
+
     DrawTile(surface, (155, 155, 0), g.apple)
-    # Draws snake
-    for part in g.snejk.body():
-        DrawTile(surface, (0, 155, 0), part)
-    DrawTile(surface, (255, 0, 0), g.snejk.head())
+    DrawSnake(surface, g.snejk)
     # Score
     score_text = font.render("Score: " + str(g.score), False, (255, 255, 255), (0, 0, 0))
     screen.blit(score_text, (0, 0))
