@@ -2,12 +2,13 @@ import sys, pygame, itertools, random
 from enum import Enum, unique, auto
 from collections import deque, namedtuple
 
-kWidth = 800
-kHeight = 600
+kTileSize = 40
 
-kTileSize = 20
 kWorldWidth = 40
 kWorldHeight = 30
+
+kWidth = kWorldWidth * kTileSize
+kHeight = kWorldHeight * kTileSize
 
 kTicksPerSecond = 25
 assert 1000 % kTicksPerSecond == 0, "(1000 / kTicksPerSecond) should result in zero"
@@ -21,7 +22,7 @@ pygame.init()
 screen = pygame.display.set_mode([kWidth, kHeight], pygame.HWSURFACE | pygame.DOUBLEBUF)
 pygame.display.set_caption("Tajga ~ Pajton")
 
-font = pygame.font.SysFont('Arial', 15)
+font = pygame.font.SysFont('Arial', kTileSize)
 
 @unique
 class Direction(Enum):
@@ -161,8 +162,8 @@ class Game:
 
 gejm = Game()
 
-label_paused = font.render("PAUSED", False, (255, 255, 255), (0, 0, 0))
-label_game_over = font.render("GAME OVER", False, (255, 255, 255), (0, 0, 0))
+label_paused = font.render("PAUSED", False, (255, 255, 255))
+label_game_over = font.render("GAME OVER", False, (255, 255, 255))
 
 def center_label_position(screen, label):
     lw, lh = label.get_size()
@@ -184,7 +185,7 @@ def Draw(surface, g):
     DrawTile(surface, (155, 155, 0), g.apple)
     DrawSnake(surface, g.snejk)
     # Score
-    score_text = font.render("Score: " + str(g.score), False, (255, 255, 255), (0, 0, 0))
+    score_text = font.render("Score: " + str(g.score), False, (255, 255, 255))
     screen.blit(score_text, (0, 0))
     # Labels
     if g.state == Game.State.PAUSE:
