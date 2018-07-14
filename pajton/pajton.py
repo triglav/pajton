@@ -1,5 +1,6 @@
-import sys, pygame
+import sys, pygame, itertools
 from enum import Enum, unique, auto
+from collections import deque, namedtuple
 
 kWidth = 800
 kHeight = 600
@@ -25,13 +26,21 @@ class Direction(Enum):
     DOWN = auto()
     LEFT = auto()
 
+Point = namedtuple("Point", "x y")
+
 class Snake:
-    def __init__(self, x, y, direction = Direction.DOWN):
-        self.pos_x = x
-        self.pos_y = y
+    def __init__(self, x = int(kWorldWidth/2), y = int(kWorldHeight/2), direction = Direction.DOWN):
         self.direction = direction
         self.speed = 1
         self.i = 0
+        assert(x-1 >= 0)
+        self.__body = deque([Point(x-1,y), Point(x,y)])
+
+    def head(self):
+        return self.__body[-1]
+
+    def body(self):
+        return itertools.islice(self.__body, len(self.__body)-1)
 
     def Update(self):
         self.i += 1
@@ -61,31 +70,35 @@ class Snake:
             self.direction = Direction.UP
 
     def __move(self):
+        head = self.head()
         if self.direction == Direction.UP:
-            self.pos_y -= 1
-            if self.pos_y < 0:
-                self.pos_y = kWorldHeight - 1
+            head = Point(head.x, head.y - 1)
+            if head.y < 0:
+                head = Point(head.x, kWorldHeight - 1)
 
         elif self.direction == Direction.RIGHT:
-            self.pos_x += 1
-            if self.pos_x >= kWorldWidth:
-                self.pos_x = 0
+            head = Point(head.x + 1, head.y)
+            if head.x >= kWorldWidth:
+                head = Point(0, head.y)
 
         elif self.direction == Direction.DOWN:
-            self.pos_y += 1
-            if self.pos_y >= kWorldHeight:
-                self.pos_y = 0
+            head = Point(head.x, head.y + 1)
+            if head.y >= kWorldHeight:
+                head = Point(head.x, 0)
 
         elif self.direction == Direction.LEFT:
-            self.pos_x -= 1
-            if self.pos_x < 0:
-                self.pos_x = kWorldWidth - 1
+            head = Point(head.x - 1, head.y)
+            if head.x < 0:
+                head = Point(kWorldWidth - 1, head.y)
+
+        self.__body.append(head)
+        self.__body.popleft()
         
 
 class Game:
     def __init__(self):
         self.running = True
-        self.snejk = Snake(0, 0)
+        self.snejk = Snake()
 
     def Update(self):
         self.snejk.Update()
@@ -106,7 +119,12 @@ class Game:
 gejm = Game()
 
 def Draw(surface, g):
-    pygame.draw.rect(surface, (255, 0, 0), (g.snejk.pos_x*kTileSize, g.snejk.pos_y*kTileSize, kTileSize, kTileSize))
+    def DrawSnakePart(surface, color, pos):
+        pygame.draw.rect(surface, color, (pos.x*kTileSize, pos.y*kTileSize, kTileSize, kTileSize))
+
+    for part in g.snejk.body():
+        DrawSnakePart(surface, (0, 155, 0), part)
+    DrawSnakePart(surface, (255, 0, 0), g.snejk.head())
 
 next_tick = pygame.time.get_ticks()
 while gejm.running:
