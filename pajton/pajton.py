@@ -21,6 +21,8 @@ pygame.init()
 screen = pygame.display.set_mode([kWidth, kHeight], pygame.HWSURFACE | pygame.DOUBLEBUF)
 pygame.display.set_caption("Tajga ~ Pajton")
 
+font = pygame.font.SysFont('Arial', 15)
+
 @unique
 class Direction(Enum):
     UP = auto()
@@ -115,6 +117,7 @@ class Game:
         self.state = Game.State.RUNNING
         self.snejk = Snake()
         self.SpawnApple()
+        self.score = 0
 
     def SpawnApple(self):
         while 1:
@@ -132,6 +135,7 @@ class Game:
                 self.state = Game.State.END_GAME
             if self.snejk.head() == self.apple:
                 print("HAM HAM HAM")
+                self.score += 1
                 self.snejk.Grow()
                 self.SpawnApple()
         
@@ -146,8 +150,24 @@ class Game:
                     self.snejk.TurnRight()
                 elif event.key == pygame.K_LEFT:
                     self.snejk.TurnLeft()
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_PAUSE or event.key == pygame.K_p:
+                    if self.state == Game.State.RUNNING:
+                        print("PAUSED")
+                        self.state = Game.State.PAUSE
+                    elif self.state == Game.State.PAUSE:
+                        print("RESUMED")
+                        self.state = Game.State.RUNNING
 
 gejm = Game()
+
+label_paused = font.render("PAUSED", False, (255, 255, 255), (0, 0, 0))
+label_game_over = font.render("GAME OVER", False, (255, 255, 255), (0, 0, 0))
+
+def center_label_position(screen, label):
+    lw, lh = label.get_size()
+    w, h = screen.get_size()
+    return (w - lw) / 2, (h - lh) / 2
 
 def Draw(surface, g):
     def DrawTile(surface, color, pos):
@@ -158,7 +178,14 @@ def Draw(surface, g):
     for part in g.snejk.body():
         DrawTile(surface, (0, 155, 0), part)
     DrawTile(surface, (255, 0, 0), g.snejk.head())
-    
+    # Score
+    score_text = font.render("Score: " + str(g.score), False, (255, 255, 255), (0, 0, 0))
+    screen.blit(score_text, (0, 0))
+    # Labels
+    if g.state == Game.State.PAUSE:
+        screen.blit(label_paused, center_label_position(screen, label_paused))
+    elif g.state == Game.State.END_GAME:
+        screen.blit(label_game_over, center_label_position(screen, label_game_over))
 
 next_tick = pygame.time.get_ticks()
 while gejm.state != Game.State.QUIT:
@@ -171,9 +198,7 @@ while gejm.state != Game.State.QUIT:
         loops += 1
 
     screen.fill((0, 0, 0))
-
     Draw(screen, gejm)
-
     pygame.display.flip()
 
 pygame.quit()
